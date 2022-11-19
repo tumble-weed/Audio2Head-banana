@@ -11,11 +11,14 @@ from skimage import img_as_ubyte
 from skimage.transform import resize
 import os
 import numpy as np
+TODO = None
 ######################################################
 # all settings, exposed here for visibility
-
+'''
 config_path = 'config/vox-256.yaml'
 checkpoint_path = 'checkpoints/vox.pth.tar'
+'''
+model_path = TODO
 device = 'cuda'
 # driving_video='./assets/driving.mp4'
 img_shape = (256,256)
@@ -38,10 +41,20 @@ def init():
     '''
     creates the globals that will be used every call
     '''
-    # CUDA_VISIBLE_DEVICES=0 python demo.py --config config/vox-256.yaml --checkpoint checkpoints/vox.pth.tar --source_image ./source.jpg --driving_video ./driving.mp4
-    global inpainting, kp_detector, dense_motion_network, avd_network
-    inpainting, kp_detector, dense_motion_network, avd_network = demo.load_checkpoints(config_path = config_path, checkpoint_path = checkpoint_path, device = device)
     
+    # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L153
+    global kp_detector,generator,audio2kp
+
+    checkpoint  = torch.load(model_path)
+    kp_detector.load_state_dict(checkpoint["kp_detector"])
+    generator.load_state_dict(checkpoint["generator"])
+    audio2kp.load_state_dict(checkpoint["audio2kp"])
+
+    generator.eval()
+    kp_detector.eval()
+    audio2kp.eval()
+    
+
 def inference(all_inputs:dict) -> dict:
     # print('bounceback')
     # return all_inputs
@@ -49,7 +62,7 @@ def inference(all_inputs:dict) -> dict:
     takes in dict created from request json, outputs dict
     to be wrapped up into a response json
     '''
-    global inpainting, kp_detector, dense_motion_network, avd_network
+    global kp_detector,generator,audio2kp
     #==================================================================
     if 'image' not in all_inputs:
         return {'result':-1,'message':'image absent in request'}
