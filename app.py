@@ -11,6 +11,17 @@ from skimage import img_as_ubyte
 from skimage.transform import resize
 import os
 import numpy as np
+import yaml
+import argparse
+######################################################
+from modules.audio2pose import get_pose_from_audio
+# from skimage import io, img_as_float32
+# import cv2
+from modules.generator import OcclusionAwareGenerator
+from modules.keypoint_detector import KPDetector
+from modules.audio2kp import AudioModel3D
+import yaml,os,imageio
+######################################################
 TODO = None
 ######################################################
 # all settings, exposed here for visibility
@@ -18,6 +29,7 @@ TODO = None
 config_path = 'config/vox-256.yaml'
 checkpoint_path = 'checkpoints/vox.pth.tar'
 '''
+config_file = r"config/vox-256.yaml"
 model_path = TODO
 device = 'cuda'
 # driving_video='./assets/driving.mp4'
@@ -43,7 +55,20 @@ def init():
     '''
     
     # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L153
+    
     global kp_detector,generator,audio2kp
+
+    with open(config_file) as f:
+        config = yaml.load(f)
+    kp_detector = KPDetector(**config['model_params']['kp_detector_params'],
+                             **config['model_params']['common_params'])
+    generator = OcclusionAwareGenerator(**config['model_params']['generator_params'],
+                                        **config['model_params']['common_params'])
+    kp_detector = kp_detector.cuda()
+    generator = generator.cuda()
+
+    opt = argparse.Namespace(**yaml.load(open("./config/parameters.yaml")))
+    audio2kp = AudioModel3D(opt).cuda()
 
     checkpoint  = torch.load(model_path)
     kp_detector.load_state_dict(checkpoint["kp_detector"])
@@ -64,11 +89,23 @@ def inference(all_inputs:dict) -> dict:
     '''
     global kp_detector,generator,audio2kp
     #==================================================================
+    # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L121
+    
     if 'image' not in all_inputs:
-        return {'result':-1,'message':'image absent in request'}
+        assert False,'TODO'
+        return {'result':-1,'message':'TODO'}
+    if 'audio' not in all_inputs:
+        assert False,'TODO'
+
     image = all_inputs.get("image", None)
     image = decodeBase64Image(image,'image')
     image = np.array(image)
+
+    audio_feature = TODO
+    frames = TODO
+
+    ref_pose_rot, ref_pose_trans = get_pose_from_audio(img, audio_feature, model_path)
+    torch.cuda.empty_cache()
     #==================================================================
     if 'video' not in all_inputs:
         return {'result':-1,'message':'video absent in request'}
