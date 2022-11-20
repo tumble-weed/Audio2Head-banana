@@ -91,7 +91,6 @@ def inference(all_inputs:dict) -> dict:
     global kp_detector,generator,audio2kp
     #==================================================================
     # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L121
-    
     if 'image' not in all_inputs:
         assert False,'TODO'
         return {'result':-1,'message':'TODO'}
@@ -133,7 +132,13 @@ def inference(all_inputs:dict) -> dict:
 #######################################################################
 # wrapper for animate
 #######################################################################
-def wrapper_for_inference():
+def wrapper_for_inference(
+                    opt,
+                    frames,
+                    audio_feature,
+                    ref_pose_trans,
+                    ref_pose_rot,
+                    ):
     audio_f = []
     poses = []
     pad = np.zeros((4,41),dtype=np.float32)
