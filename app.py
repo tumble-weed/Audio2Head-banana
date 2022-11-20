@@ -21,6 +21,7 @@ from modules.generator import OcclusionAwareGenerator
 from modules.keypoint_detector import KPDetector
 from modules.audio2kp import AudioModel3D
 import yaml,os,imageio
+from inference import draw_annotation_box
 ######################################################
 TODO = None
 ######################################################
@@ -138,6 +139,9 @@ def wrapper_for_inference(
                     audio_feature,
                     ref_pose_trans,
                     ref_pose_rot,
+                    kp_detector,
+                    audio2kp,
+                    generator,
                     ):
     audio_f = []
     poses = []
@@ -218,6 +222,7 @@ def wrapper_for_inference(
     os.system(cmd)
     os.remove(video_path)    
 
+'''
 def wrapper_for_animate(source_image,
                         driving_video,
                         device,
@@ -270,3 +275,4 @@ def wrapper_for_animate(source_image,
     os.system(f'rm {temp_name}')
     #===============================================
     return video_base64
+'''
