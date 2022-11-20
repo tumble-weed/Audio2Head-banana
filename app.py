@@ -133,6 +133,85 @@ def inference(all_inputs:dict) -> dict:
 #######################################################################
 # wrapper for animate
 #######################################################################
+def wrapper_for_inference():
+    audio_f = []
+    poses = []
+    pad = np.zeros((4,41),dtype=np.float32)
+    for i in range(0, frames, opt.seq_len // 2):
+        temp_audio = []
+        temp_pos = []
+        for j in range(opt.seq_len):
+            if i + j < frames:
+                temp_audio.append(audio_feature[(i+j)*4:(i+j)*4+4])
+                trans = ref_pose_trans[i + j]
+                rot = ref_pose_rot[i + j]
+            else:
+                temp_audio.append(pad)
+                trans = ref_pose_trans[-1]
+                rot = ref_pose_rot[-1]
+
+            pose = np.zeros([256, 256])
+            draw_annotation_box(pose, np.array(rot), np.array(trans))
+            temp_pos.append(pose)
+        audio_f.append(temp_audio)
+        poses.append(temp_pos)
+        
+    audio_f = torch.from_numpy(np.array(audio_f,dtype=np.float32)).unsqueeze(0)
+    poses = torch.from_numpy(np.array(poses, dtype=np.float32)).unsqueeze(0)
+
+    bs = audio_f.shape[1]
+    predictions_gen = []
+    total_frames = 0
+    
+    for bs_idx in range(bs):
+        t = {}
+
+        t["audio"] = audio_f[:, bs_idx].cuda()
+        t["pose"] = poses[:, bs_idx].cuda()
+        t["id_img"] = img
+        kp_gen_source = kp_detector(img)
+
+        gen_kp = audio2kp(t)
+        if bs_idx == 0:
+            startid = 0
+            end_id = opt.seq_len // 4 * 3
+        else:
+            startid = opt.seq_len // 4
+            end_id = opt.seq_len // 4 * 3
+
+        for frame_bs_idx in range(startid, end_id):
+            tt = {}
+            tt["value"] = gen_kp["value"][:, frame_bs_idx]
+            if opt.estimate_jacobian:
+                tt["jacobian"] = gen_kp["jacobian"][:, frame_bs_idx]
+            out_gen = generator(img, kp_source=kp_gen_source, kp_driving=tt)
+            out_gen["kp_source"] = kp_gen_source
+            out_gen["kp_driving"] = tt
+            del out_gen['sparse_deformed']
+            del out_gen['occlusion_map']
+            del out_gen['deformed']
+            predictions_gen.append(
+                (np.transpose(out_gen['prediction'].data.cpu().numpy(), [0, 2, 3, 1])[0] * 255).astype(np.uint8))
+
+            total_frames += 1
+            if total_frames >= frames:
+                break
+        if total_frames >= frames:
+            break
+
+    log_dir = save_path
+    if not os.path.exists(os.path.join(log_dir, "temp")):
+        os.makedirs(os.path.join(log_dir, "temp"))
+    image_name = os.path.basename(img_path)[:-4]+ "_" + os.path.basename(audio_path)[:-4] + ".mp4"
+
+    video_path = os.path.join(log_dir, "temp", image_name)
+
+    imageio.mimsave(video_path, predictions_gen, fps=25.0)
+
+    save_video = os.path.join(log_dir, image_name)
+    cmd = r'ffmpeg -y -i "%s" -i "%s" -vcodec copy "%s"' % (video_path, audio_path, save_video)
+    os.system(cmd)
+    os.remove(video_path)    
 
 def wrapper_for_animate(source_image,
                         driving_video,
