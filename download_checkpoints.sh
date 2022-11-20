@@ -1,6 +1,5 @@
 mkdir checkpoints
 cd checkpoints
-# vox.pth.tar
-gdown 1-CKOjv_y_TzNe-dwQsjjeVxJUuyBAb5X
-# mv vox.pth.tar custom.pth.tar
+#audio2head.pth.tar
+gdown 1tvI43ZIrnx9Ti2TpFiEO4dK5DOwcECD7/view
 cd ../
