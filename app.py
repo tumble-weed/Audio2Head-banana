@@ -27,10 +27,9 @@ TODO = None
 # all settings, exposed here for visibility
 '''
 config_path = 'config/vox-256.yaml'
-checkpoint_path = 'checkpoints/vox.pth.tar'
 '''
-config_file = r"config/vox-256.yaml"
-model_path = TODO
+config_file = "config/vox-256.yaml"
+model_path = 'checkpoints/audio2head.pth.tar'
 device = 'cuda'
 # driving_video='./assets/driving.mp4'
 img_shape = (256,256)
