@@ -29,7 +29,9 @@ TODO = None
 config_path = 'config/vox-256.yaml'
 '''
 config_file = "config/vox-256.yaml"
+parameters_file = "config/parameters.yaml"
 model_path = 'checkpoints/audio2head.pth.tar'
+
 device = 'cuda'
 # driving_video='./assets/driving.mp4'
 img_shape = (256,256)
@@ -66,7 +68,7 @@ def init():
     kp_detector = kp_detector.cuda()
     generator = generator.cuda()
 
-    opt = argparse.Namespace(**yaml.load(open("./config/parameters.yaml")))
+    opt = argparse.Namespace(**yaml.load(open(parameters_file)))
     audio2kp = AudioModel3D(opt).cuda()
 
     checkpoint  = torch.load(model_path)
