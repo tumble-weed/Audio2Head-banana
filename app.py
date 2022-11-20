@@ -211,6 +211,8 @@ def wrapper_for_inference(
     log_dir = save_path
     if not os.path.exists(os.path.join(log_dir, "temp")):
         os.makedirs(os.path.join(log_dir, "temp"))
+    import tempfile
+    temp_name = next(tempfile._get_candidate_names())        
     image_name = os.path.basename(img_path)[:-4]+ "_" + os.path.basename(audio_path)[:-4] + ".mp4"
 
     video_path = os.path.join(log_dir, "temp", image_name)
