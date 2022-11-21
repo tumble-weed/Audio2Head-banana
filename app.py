@@ -106,6 +106,7 @@ def inference(all_inputs:dict) -> dict:
     img = torch.from_numpy(img).unsqueeze(0).cuda()
 
     #====================================================================
+    # https://stackoverflow.com/questions/50279380/how-to-decode-base64-string-directly-to-binary-audio-format
     import tempfile
     audio_path = next(tempfile._get_candidate_names())  + ".wav"
     wav_file = open(audio_path, "wb")
