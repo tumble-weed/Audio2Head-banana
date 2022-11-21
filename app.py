@@ -21,7 +21,7 @@ from modules.generator import OcclusionAwareGenerator
 from modules.keypoint_detector import KPDetector
 from modules.audio2kp import AudioModel3D
 import yaml,os,imageio
-from inference import draw_annotation_box
+from inference import draw_annotation_box,get_audio_feature_from_audio
 ######################################################
 TODO = None
 ######################################################
@@ -58,7 +58,7 @@ def init():
     
     # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L153
     
-    global kp_detector,generator,audio2kp
+    global kp_detector,generator,audio2kp,opt
 
     with open(config_file) as f:
         config = yaml.load(f)
@@ -89,25 +89,38 @@ def inference(all_inputs:dict) -> dict:
     takes in dict created from request json, outputs dict
     to be wrapped up into a response json
     '''
-    global kp_detector,generator,audio2kp
+    global kp_detector,generator,audio2kp,opt
     #==================================================================
     # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L121
-    if 'image' not in all_inputs:
-        assert False,'TODO'
-        return {'result':-1,'message':'TODO'}
     if 'audio' not in all_inputs:
-        assert False,'TODO'
+        return {'result':-1,'message':'audio missing'}
+    if 'image' not in all_inputs:
+        return {'result':-1,'message':'image missing'}
 
     image = all_inputs.get("image", None)
     image = decodeBase64Image(image,'image')
-    image = np.array(image)
+    img = image = np.array(image)
+    img = cv2.resize(img, (256, 256))
+    img = np.array(img_as_float32(img))
+    img = img.transpose((2, 0, 1))
+    img = torch.from_numpy(img).unsqueeze(0).cuda()
 
-    audio_feature = TODO
-    frames = TODO
+    '''
+    temp_audio="./results/temp.wav"
+    command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (audio_path, temp_audio))
+    output = subprocess.call(command, shell=True, stdout=None)
+    '''
+    temp_audio = TODO
+
+
+
+    audio_feature = get_audio_feature_from_audio(temp_audio)
+    frames = len(audio_feature) // 4
 
     ref_pose_rot, ref_pose_trans = get_pose_from_audio(img, audio_feature, model_path)
     torch.cuda.empty_cache()
     #==================================================================
+    '''
     if 'video' not in all_inputs:
         return {'result':-1,'message':'video absent in request'}
     driving_video = all_inputs.get("video",None)
@@ -128,10 +141,24 @@ def inference(all_inputs:dict) -> dict:
                         mode = mode,
                         # result_video='./result.mp4',
                         )
+    
     #TODO: or storage to google bucket and send back the link?
     return {'result':video_base64,'message':'success'}
+    '''
+    with torch.inference_mode():
+        wrapper_for_inference(
+                    opt,
+                    frames,
+                    audio_feature,
+                    ref_pose_trans,
+                    ref_pose_rot,
+                    kp_detector,
+                    audio2kp,
+                    generator,
+                    )
+    return {'result':video_base64,'message':'success'}                    
 #######################################################################
-# wrapper for animate
+# wrapper for inference
 #######################################################################
 def wrapper_for_inference(
                     opt,
