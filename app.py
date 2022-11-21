@@ -125,7 +125,7 @@ def inference(all_inputs:dict) -> dict:
     torch.cuda.empty_cache()
     #==================================================================
     with torch.inference_mode():
-        wrapper_for_inference(
+        video_base64 = wrapper_for_inference(
                     opt,
                     frames,
                     audio_feature,
@@ -239,57 +239,3 @@ def wrapper_for_inference(
         #===============================================
     return video_base64
 
-'''
-def wrapper_for_animate(source_image,
-                        driving_video,
-                        device,
-                        img_shape,
-                        inpainting, 
-                        kp_detector, 
-                        dense_motion_network, 
-                        avd_network,
-                        find_best_frame,
-                        mode,
-                        # result_video='./result.mp4',
-                        ):
-    # source_image = imageio.imread(opt.source_image)
-    reader = imageio.get_reader(driving_video)
-    fps = reader.get_meta_data()['fps']
-    driving_video = []
-    try:
-        for im in reader:
-            driving_video.append(im)
-    except RuntimeError:
-        pass
-    reader.close()
-    
-
-    device = torch.device(device)
-    source_image = resize(source_image, img_shape)[..., :3]
-    driving_video = [resize(frame, img_shape)[..., :3] for frame in driving_video]
-    #===============================================
-    # copied from demo.py in Thin-Plate-Spline ...
-    if find_best_frame:
-        i = demo.find_best_frame(source_image, driving_video, False)
-        print ("Best frame: " + str(i))
-        driving_forward = driving_video[i:]
-        driving_backward = driving_video[:(i+1)][::-1]
-        predictions_forward = demo.make_animation(source_image, driving_forward, inpainting, kp_detector, dense_motion_network, avd_network, device = device, mode = mode)
-        predictions_backward = demo.make_animation(source_image, driving_backward, inpainting, kp_detector, dense_motion_network, avd_network, device = device, mode = mode)
-        predictions = predictions_backward[::-1] + predictions_forward[1:]
-    else:
-        predictions = demo.make_animation(source_image, driving_video, inpainting, kp_detector, dense_motion_network, avd_network, device = device, mode = mode)
-    #===============================================
-    # HACK: save result as temporary file,reread and binarize
-    import tempfile
-    temp_name = next(tempfile._get_candidate_names())
-    temp_name = temp_name +'.mp4'
-    imageio.mimsave(temp_name, [img_as_ubyte(frame) for frame in predictions], fps=fps)    
-    # imageio.mimread(temp_name)
-    # https://stackoverflow.com/questions/56248567/how-do-i-decode-encode-a-video-to-a-text-file-and-then-back-to-video
-    with open(temp_name, "rb") as videoFile:
-        video_base64 =  base64.b64encode(videoFile.read()).decode('utf-8')
-    os.system(f'rm {temp_name}')
-    #===============================================
-    return video_base64
-'''
