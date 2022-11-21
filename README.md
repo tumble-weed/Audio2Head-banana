@@ -1,4 +1,4 @@
-Deployment of (Thin Plate Spline)[https://github.com/yoyo-nb/Thin-Plate-Spline-Motion-Model] on banana.dev
+Deployment of [Audio2Head](https://github.com/wangsuzhen/Audio2Head) on banana.dev
 
 Structure is as suggested by https://github.com/bananaml/serverless-template/
 
