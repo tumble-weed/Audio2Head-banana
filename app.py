@@ -214,21 +214,30 @@ def wrapper_for_inference(
         if total_frames >= frames:
             break
 
-    log_dir = save_path
-    if not os.path.exists(os.path.join(log_dir, "temp")):
-        os.makedirs(os.path.join(log_dir, "temp"))
-    import tempfile
-    temp_name = next(tempfile._get_candidate_names())        
-    image_name = os.path.basename(img_path)[:-4]+ "_" + os.path.basename(audio_path)[:-4] + ".mp4"
+    with tempfile.TemporaryDirectory() as log_dir:
+        # path = os.path.join(tmp, 'something')
+        # use path
+        # log_dir = save_path
+        if not os.path.exists(os.path.join(log_dir, "temp")):
+            os.makedirs(os.path.join(log_dir, "temp"))
+        import tempfile
+        temp_name = next(tempfile._get_candidate_names())        
+        image_name = os.path.basename(img_path)[:-4]+ "_" + os.path.basename(audio_path)[:-4] + ".mp4"
 
-    video_path = os.path.join(log_dir, "temp", image_name)
+        video_path = os.path.join(log_dir, "temp", image_name)
 
-    imageio.mimsave(video_path, predictions_gen, fps=25.0)
+        imageio.mimsave(video_path, predictions_gen, fps=25.0)
 
-    save_video = os.path.join(log_dir, image_name)
-    cmd = r'ffmpeg -y -i "%s" -i "%s" -vcodec copy "%s"' % (video_path, audio_path, save_video)
-    os.system(cmd)
-    os.remove(video_path)    
+        save_video = os.path.join(log_dir, image_name)
+        cmd = r'ffmpeg -y -i "%s" -i "%s" -vcodec copy "%s"' % (video_path, audio_path, save_video)
+        os.system(cmd)
+        os.remove(video_path)    
+        # https://stackoverflow.com/questions/56248567/how-do-i-decode-encode-a-video-to-a-text-file-and-then-back-to-video
+        with open(save_video, "rb") as videoFile:
+            video_base64 =  base64.b64encode(videoFile.read()).decode('utf-8')
+        os.system(f'rm {save_video}')
+        #===============================================
+    return video_base64
 
 '''
 def wrapper_for_animate(source_image,
