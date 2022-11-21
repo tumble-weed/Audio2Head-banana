@@ -105,46 +105,24 @@ def inference(all_inputs:dict) -> dict:
     img = img.transpose((2, 0, 1))
     img = torch.from_numpy(img).unsqueeze(0).cuda()
 
-    '''
+    #====================================================================
+    import tempfile
+    audio_path = next(tempfile._get_candidate_names())  + ".wav"
+    wav_file = open(audio_path, "wb")
+    audio = all_inputs.get("audio", None)
+    decode_string = base64.b64decode(audio)
+    wav_file.write(decode_string)
+
     temp_audio="./results/temp.wav"
     command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (audio_path, temp_audio))
     output = subprocess.call(command, shell=True, stdout=None)
-    '''
-    temp_audio = TODO
-
-
-
+    #====================================================================
     audio_feature = get_audio_feature_from_audio(temp_audio)
     frames = len(audio_feature) // 4
 
     ref_pose_rot, ref_pose_trans = get_pose_from_audio(img, audio_feature, model_path)
     torch.cuda.empty_cache()
     #==================================================================
-    '''
-    if 'video' not in all_inputs:
-        return {'result':-1,'message':'video absent in request'}
-    driving_video = all_inputs.get("video",None)
-    driving_video = os.path.join('./videos',driving_video)
-    if not os.path.exists(driving_video):
-        return {'result':-1,'message':'video not recognized'}
-    #==================================================================
-    with torch.inference_mode():
-        video_base64 = wrapper_for_animate(image,
-                        driving_video=driving_video,
-                        device='cuda',
-                        img_shape = img_shape,
-                        inpainting = inpainting, 
-                        kp_detector  = kp_detector, 
-                        dense_motion_network  = dense_motion_network, 
-                        avd_network = avd_network,
-                        find_best_frame = find_best_frame,
-                        mode = mode,
-                        # result_video='./result.mp4',
-                        )
-    
-    #TODO: or storage to google bucket and send back the link?
-    return {'result':video_base64,'message':'success'}
-    '''
     with torch.inference_mode():
         wrapper_for_inference(
                     opt,
