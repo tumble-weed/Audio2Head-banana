@@ -16,7 +16,7 @@ import argparse
 ######################################################
 from modules.audio2pose import get_pose_from_audio
 # from skimage import io, img_as_float32
-# import cv2
+import cv2
 from modules.generator import OcclusionAwareGenerator
 from modules.keypoint_detector import KPDetector
 from modules.audio2kp import AudioModel3D
