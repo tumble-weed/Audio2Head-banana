@@ -5,6 +5,7 @@ WORKDIR /
 
 # Install git
 RUN apt-get update && apt-get install -y git 
+# https://linuxize.com/post/how-to-install-gcc-on-ubuntu-20-04/
 RUN apt-get install -y build-essential
 
 # Clone audio2head
@@ -15,11 +16,12 @@ WORKDIR "/Audio2Head"
 # ADD videos videos
 # copy corrected requirements.txt
 # RUN rm requirements.txt
-# COPY requirements.txt requirements.txt
+COPY requirements.txt banana_requirements.txt
 
 # Install python packages
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
+RUN pip3 install -r banana_requirements.txt
 #NOTE: I was not able to get these to install with the correct versions from requirements.txt
 # RUN pip3 install torch===1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 # RUN pip3 install torchvision===0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
