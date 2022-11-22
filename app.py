@@ -116,7 +116,8 @@ def inference(all_inputs:dict) -> dict:
     decode_string = base64.b64decode(audio)
     wav_file.write(decode_string)
 
-    temp_audio="./results/temp.wav"
+    # temp_audio="./results/temp.wav"
+    temp_audio="temp.wav"
     command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (audio_path, temp_audio))
     output = subprocess.call(command, shell=True, stdout=None)
     # return {'result':-1,'message':'success'}                    
