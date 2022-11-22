@@ -4,7 +4,7 @@ FROM pytorch/pytorch:1.10.0-cuda11.3-cudnn8-runtime
 WORKDIR /
 
 # Install git
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y git && apt-get install -y gcc
 
 # Clone audio2head
 # RUN git clone https://github.com/yoyo-nb/Thin-Plate-Spline-Motion-Model
