@@ -135,6 +135,7 @@ def inference(all_inputs:dict) -> dict:
                     audio2kp,
                     generator,
                     )
+    print('wrapper_for_inference done')
     return {'result':video_base64,'message':'success'}                    
 #######################################################################
 # wrapper for inference
@@ -170,7 +171,7 @@ def wrapper_for_inference(
             temp_pos.append(pose)
         audio_f.append(temp_audio)
         poses.append(temp_pos)
-        
+    print('loop1 done')
     audio_f = torch.from_numpy(np.array(audio_f,dtype=np.float32)).unsqueeze(0)
     poses = torch.from_numpy(np.array(poses, dtype=np.float32)).unsqueeze(0)
 
@@ -213,7 +214,7 @@ def wrapper_for_inference(
                 break
         if total_frames >= frames:
             break
-
+    print('loop2 done')
     with tempfile.TemporaryDirectory() as log_dir:
         # path = os.path.join(tmp, 'something')
         # use path
@@ -237,5 +238,6 @@ def wrapper_for_inference(
             video_base64 =  base64.b64encode(videoFile.read()).decode('utf-8')
         os.system(f'rm {save_video}')
         #===============================================
+    print('video64 done')
     return video_base64
 
