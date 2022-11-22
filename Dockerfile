@@ -7,7 +7,8 @@ WORKDIR /
 RUN apt-get update && apt-get install -y git 
 # https://linuxize.com/post/how-to-install-gcc-on-ubuntu-20-04/
 RUN apt-get install -y build-essential
-
+# opencv dependencies: https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
+RUN apt-get install ffmpeg libsm6 libxext6  -y
 # Clone audio2head
 RUN git clone https://github.com/wangsuzhen/Audio2Head
 
