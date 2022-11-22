@@ -23,6 +23,7 @@ from modules.audio2kp import AudioModel3D
 import yaml,os,imageio
 import subprocess
 from inference import draw_annotation_box,get_audio_feature_from_audio
+import tempfile
 ######################################################
 TODO = None
 ######################################################
@@ -109,7 +110,7 @@ def inference(all_inputs:dict) -> dict:
     # return {'result':-1,'message':'success'}                    
     #====================================================================
     # https://stackoverflow.com/questions/50279380/how-to-decode-base64-string-directly-to-binary-audio-format
-    import tempfile
+
     audio_path = next(tempfile._get_candidate_names())  + ".wav"
     wav_file = open(audio_path, "wb")
     audio = all_inputs.get("audio", None)
@@ -231,7 +232,6 @@ def wrapper_for_inference(
         # log_dir = save_path
         if not os.path.exists(os.path.join(log_dir, "temp")):
             os.makedirs(os.path.join(log_dir, "temp"))
-        import tempfile
         temp_name = next(tempfile._get_candidate_names())        
         image_name = temp_name + ".mp4"
 
