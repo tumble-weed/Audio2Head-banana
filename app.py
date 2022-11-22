@@ -15,12 +15,13 @@ import yaml
 import argparse
 ######################################################
 from modules.audio2pose import get_pose_from_audio
-# from skimage import io, img_as_float32
+from skimage import io, img_as_float32
 import cv2
 from modules.generator import OcclusionAwareGenerator
 from modules.keypoint_detector import KPDetector
 from modules.audio2kp import AudioModel3D
 import yaml,os,imageio
+import subprocess
 from inference import draw_annotation_box,get_audio_feature_from_audio
 ######################################################
 TODO = None
@@ -89,7 +90,7 @@ def inference(all_inputs:dict) -> dict:
     takes in dict created from request json, outputs dict
     to be wrapped up into a response json
     '''
-    return {'result':-1,'message':'success'}                    
+    # return {'result':-1,'message':'success'}                    
     global kp_detector,generator,audio2kp,opt
     #==================================================================
     # https://github.com/wangsuzhen/Audio2Head/blob/09e9b431e48a6358c2877a12cd45457ff0379455/inference.py#L121
@@ -105,7 +106,7 @@ def inference(all_inputs:dict) -> dict:
     img = np.array(img_as_float32(img))
     img = img.transpose((2, 0, 1))
     img = torch.from_numpy(img).unsqueeze(0).cuda()
-    return {'result':-1,'message':'success'}                    
+    # return {'result':-1,'message':'success'}                    
     #====================================================================
     # https://stackoverflow.com/questions/50279380/how-to-decode-base64-string-directly-to-binary-audio-format
     import tempfile
@@ -118,7 +119,7 @@ def inference(all_inputs:dict) -> dict:
     temp_audio="./results/temp.wav"
     command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (audio_path, temp_audio))
     output = subprocess.call(command, shell=True, stdout=None)
-    return {'result':-1,'message':'success'}                    
+    # return {'result':-1,'message':'success'}                    
     #====================================================================
     audio_feature = get_audio_feature_from_audio(temp_audio)
     frames = len(audio_feature) // 4
@@ -126,10 +127,12 @@ def inference(all_inputs:dict) -> dict:
     ref_pose_rot, ref_pose_trans = get_pose_from_audio(img, audio_feature, model_path)
     torch.cuda.empty_cache()
     #==================================================================
-    return {'result':-1,'message':'success'}                    
+    # return {'result':-1,'message':'success'}                    
     with torch.inference_mode():
         video_base64 = wrapper_for_inference(
                     opt,
+                    img,
+                    audio_path,
                     frames,
                     audio_feature,
                     ref_pose_trans,
@@ -138,6 +141,7 @@ def inference(all_inputs:dict) -> dict:
                     audio2kp,
                     generator,
                     )
+    os.system(f'rm {audio_path}')
     print('wrapper_for_inference done')
     return {'result':video_base64,'message':'success'}                    
 #######################################################################
@@ -145,6 +149,8 @@ def inference(all_inputs:dict) -> dict:
 #######################################################################
 def wrapper_for_inference(
                     opt,
+                    img,
+                    audio_path,
                     frames,
                     audio_feature,
                     ref_pose_trans,
@@ -226,7 +232,7 @@ def wrapper_for_inference(
             os.makedirs(os.path.join(log_dir, "temp"))
         import tempfile
         temp_name = next(tempfile._get_candidate_names())        
-        image_name = os.path.basename(img_path)[:-4]+ "_" + os.path.basename(audio_path)[:-4] + ".mp4"
+        image_name = temp_name + ".mp4"
 
         video_path = os.path.join(log_dir, "temp", image_name)
 
