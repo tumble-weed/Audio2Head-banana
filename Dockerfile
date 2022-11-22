@@ -23,6 +23,9 @@ COPY requirements.txt banana_requirements.txt
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r banana_requirements.txt
+# for reading mp4 files
+RUN pip3 install imageio[ffmpeg]
+RUN pip3 install imageio[pyav]
 #NOTE: I was not able to get these to install with the correct versions from requirements.txt
 # RUN pip3 install torch===1.10.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 # RUN pip3 install torchvision===0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
